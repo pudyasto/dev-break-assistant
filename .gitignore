@@ -1,0 +1,32 @@
+# .gitignore for DevBreak
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Rust
+target/
+Cargo.lock
+
+# Tauri
+src-tauri/target/
+src-tauri/.sqlx/
+
+# OS
+.DS_Store
+*.swp
+*.swo
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# Database (don't commit user data)
+*.db
+*.db-shm
+*.db-wal

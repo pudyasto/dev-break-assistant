@@ -1,0 +1,69 @@
+[package]
+name = "devbreak"
+version = "0.1.0"
+description = "DevBreak — Desktop Wellness Assistant"
+authors = ["DevBreak"]
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "devbreak_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# ── Tauri
+tauri          = { version = "2", features = ["tray-icon", "image-png"] }
+tauri-plugin-notification = { version = "2" }
+tauri-plugin-autostart    = { version = "2" }
+tauri-plugin-shell        = { version = "2" }
+
+# ── Async
+tokio    = { version = "1", features = ["full"] }
+
+# ── Database
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "macros", "chrono"] }
+
+# ── Serialization
+serde      = { version = "1", features = ["derive"] }
+serde_json = { version = "1" }
+
+# ── Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# ── Error handling
+thiserror = "1"
+
+# ── Logging
+tracing            = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+# ── Async trait support
+async-trait = "0.1"
+
+# ── HTTP Client (Phase 11)
+reqwest = { version = "0.12", features = ["json"] }
+
+
+# ── Platform (Linux D-Bus)
+[target.'cfg(target_os = "linux")'.dependencies]
+zbus    = { version = "4", features = ["tokio"] }
+
+# ── Platform (macOS)
+[target.'cfg(target_os = "macos")'.dependencies]
+core-foundation = "0.9"
+core-graphics = "0.23"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.dev]
+incremental = true
+
+[profile.release]
+strip     = true
+opt-level = 3
+lto       = true
