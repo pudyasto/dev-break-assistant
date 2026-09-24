@@ -4,15 +4,15 @@
     <!-- ── Header ─────────────────────────────────────────────────── -->
     <div class="flex items-start justify-between">
       <div>
-        <h1 class="text-[26px] font-semibold text-[var(--color-text)] tracking-tight">Good morning</h1>
-        <p class="text-[14px] text-muted mt-1">Here's your desk activity today.</p>
+        <h1 class="text-[26px] font-semibold text-[var(--color-text)] tracking-tight">{{ t('dashboard.greeting') }}</h1>
+        <p class="text-[14px] text-muted mt-1">{{ t('dashboard.subtitle') }}</p>
         <p class="text-[14px] text-muted mt-2">{{ currentDate }}</p>
       </div>
       <div class="flex flex-col items-end gap-4">
-        <button class="btn-primary" @click="router.push('/activity')">Take a Break</button>
+        <button class="btn-primary" @click="router.push('/activity')">{{ t('dashboard.takeBreak') }}</button>
         <div class="flex items-center gap-2">
           <span class="glow-dot glow-dot-green"></span>
-          <span class="text-[13px] font-medium text-[var(--color-text)]">Monitoring</span>
+          <span class="text-[13px] font-medium text-[var(--color-text)]">{{ t('status.monitoring') }}</span>
         </div>
       </div>
     </div>
@@ -21,7 +21,7 @@
     <div v-if="activityStore.loading" class="flex items-center justify-center py-20">
       <div class="flex flex-col items-center gap-4">
         <div class="w-8 h-8 rounded-full border-2 border-[var(--color-accent)] border-t-transparent animate-spin"></div>
-        <span class="text-sm text-muted">Connecting to monitor…</span>
+        <span class="text-sm text-muted">{{ t('dashboard.connecting') }}</span>
       </div>
     </div>
 
@@ -32,19 +32,19 @@
           <div class="text-[20px] select-none">✨</div>
           <div class="space-y-1 min-w-0">
             <div class="flex items-center gap-2">
-              <h3 class="text-xs font-semibold uppercase tracking-widest text-[var(--color-accent)]">Your AI Coach</h3>
-              <span v-if="loadingTip" class="text-[11px] text-muted animate-pulse">Menghubungi Ollama...</span>
+              <h3 class="text-xs font-semibold uppercase tracking-widest text-[var(--color-accent)]">{{ t('dashboard.aiCoach') }}</h3>
+              <span v-if="loadingTip" class="text-[11px] text-muted animate-pulse">{{ t('dashboard.aiLoading') }}</span>
             </div>
             <p v-if="aiTip" class="text-sm text-[var(--color-text)] leading-relaxed italic">"{{ aiTip }}"</p>
             <p v-else-if="aiTipError" class="text-xs text-red-400 leading-relaxed">{{ aiTipError }}</p>
-            <p v-else-if="!loadingTip" class="text-xs text-muted">Belum ada saran saat ini. Klik tombol refresh untuk meminta saran.</p>
+            <p v-else-if="!loadingTip" class="text-xs text-muted">{{ t('dashboard.aiEmpty') }}</p>
           </div>
         </div>
 
         <button
           type="button"
           class="btn-ghost text-xs p-2 shrink-0 text-muted hover:text-[var(--color-text)] rounded-lg"
-          :title="loadingTip ? 'Sedang memuat...' : 'Minta saran baru dari AI'"
+          :title="loadingTip ? t('dashboard.aiRefreshing') : t('dashboard.aiRefresh')"
           :disabled="loadingTip"
           @click="fetchAiTip"
         >
@@ -62,14 +62,14 @@
           :state="activityStore.state"
           :seconds="activityStore.activeSeconds"
           :max-seconds="shortBreakThresholdSec"
-          subtitle="active session"
+          :subtitle="t('dashboard.activeSession')"
         />
 
         <!-- Idle + state info -->
         <div class="card p-6 flex flex-col justify-between gap-4">
           <!-- State badge -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold uppercase tracking-widest text-muted">Current State</span>
+            <span class="text-xs font-semibold uppercase tracking-widest text-muted">{{ t('dashboard.currentState') }}</span>
             <span class="badge" :class="stateBadgeClass">
               <span class="glow-dot text-[10px]" :class="dotClass"></span>
               {{ activityStore.stateText }}
@@ -78,7 +78,7 @@
 
           <!-- Idle counter -->
           <div class="flex flex-col gap-1">
-            <span class="text-xs font-semibold uppercase tracking-widest text-muted">Idle Time</span>
+            <span class="text-xs font-semibold uppercase tracking-widest text-muted">{{ t('dashboard.idleTime') }}</span>
             <div class="flex items-end gap-2">
               <span class="text-4xl font-bold font-mono text-[var(--color-text)] animate-counter tracking-tight">
                 {{ formatDuration(activityStore.idleSeconds) }}
@@ -94,7 +94,7 @@
               ></div>
             </div>
             <span class="text-[13px] text-muted mt-2">
-              {{ idleProgress >= 100 ? 'Break auto-detected' : `${idleCutoffSec}s until auto-break` }}
+              {{ idleProgress >= 100 ? t('dashboard.autoBreak') : t('dashboard.untilAutoBreak', { seconds: idleCutoffSec }) }}
             </span>
           </div>
 
@@ -103,17 +103,17 @@
             <div class="grid grid-cols-2 gap-y-2 gap-x-4 mt-2">
               <div class="flex items-center gap-2">
                 <span class="glow-dot" :class="capabilities.idleDetection ? 'glow-dot-green' : 'glow-dot-amber'"></span>
-                <span class="text-[12px] text-muted">Idle Detection</span>
+                <span class="text-[12px] text-muted">{{ t('dashboard.idleDetection') }}</span>
               </div>
               <div class="text-[12px] font-medium" :class="capabilities.idleDetection ? 'text-green-500' : 'text-amber-500'">
-                {{ capabilities.idleDetection ? 'Available' : 'Fallback' }}
+                {{ capabilities.idleDetection ? t('common.available') : t('common.fallback') }}
               </div>
               <div class="flex items-center gap-2">
                 <span class="glow-dot" :class="capabilities.sessionLockDetection ? 'glow-dot-green' : 'glow-dot-muted'"></span>
-                <span class="text-[12px] text-muted">Screen Lock</span>
+                <span class="text-[12px] text-muted">{{ t('dashboard.screenLock') }}</span>
               </div>
               <div class="text-[12px] font-medium" :class="capabilities.sessionLockDetection ? 'text-green-500' : 'text-muted'">
-                {{ capabilities.sessionLockDetection ? 'Available' : 'Unavailable' }}
+                {{ capabilities.sessionLockDetection ? t('common.available') : t('common.unavailable') }}
               </div>
             </div>
           </div>
@@ -122,31 +122,31 @@
 
       <!-- ── Today Stats ────────────────────────────────────────────── -->
       <div>
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">Today's Overview</h2>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">{{ t('dashboard.overview') }}</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard
-            label="Active Time"
+            :label="t('dashboard.activeTime')"
             :value="formatDuration(todayStats?.activeSeconds ?? 0)"
             icon=""
             icon-bg-class=""
             :delay="0"
           />
           <StatCard
-            label="Break Time"
+            :label="t('dashboard.breakTime')"
             :value="formatDuration(todayStats?.breakSeconds ?? 0)"
             icon=""
             icon-bg-class=""
             :delay="1"
           />
           <StatCard
-            label="Breaks Taken"
+            :label="t('dashboard.breaksTaken')"
             :value="String(todayStats?.breakCount ?? 0)"
             icon=""
             icon-bg-class=""
             :delay="2"
           />
           <StatCard
-            label="Longest Streak"
+            :label="t('dashboard.longestStreak')"
             :value="formatDuration(todayStats?.longestActiveStreakSeconds ?? 0)"
             icon=""
             icon-bg-class=""
@@ -157,11 +157,11 @@
 
       <!-- ── Break Schedule ────────────────────────────────────────── -->
       <div>
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">Next Break</h2>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">{{ t('dashboard.nextBreak') }}</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <BreakCard
-            title="Eye Rest"
-            :description="`In ${activityStore.activity?.nextEyeBreakSeconds ?? 0}s`"
+            :title="t('dashboard.eyeRest')"
+            :description="t('dashboard.inSeconds', { seconds: activityStore.activity?.nextEyeBreakSeconds ?? 0 })"
             icon=""
             icon-bg=""
             :countdown-seconds="activityStore.activity?.nextEyeBreakSeconds ?? null"
@@ -169,8 +169,8 @@
             progress-color="var(--color-blue)"
           />
           <BreakCard
-            title="Movement Break"
-            :description="`In ${activityStore.activity?.nextShortBreakSeconds ?? 0}s`"
+            :title="t('dashboard.movementBreak')"
+            :description="t('dashboard.inSeconds', { seconds: activityStore.activity?.nextShortBreakSeconds ?? 0 })"
             icon=""
             icon-bg=""
             :countdown-seconds="activityStore.activity?.nextShortBreakSeconds ?? null"
@@ -178,8 +178,8 @@
             progress-color="var(--color-green)"
           />
           <BreakCard
-            title="Long Break"
-            :description="`In ${activityStore.activity?.nextLongBreakSeconds ?? 0}s`"
+            :title="t('dashboard.longBreak')"
+            :description="t('dashboard.inSeconds', { seconds: activityStore.activity?.nextLongBreakSeconds ?? 0 })"
             icon=""
             icon-bg=""
             :countdown-seconds="activityStore.activity?.nextLongBreakSeconds ?? null"
@@ -202,11 +202,13 @@ import ActivityTimer from '@/components/ActivityTimer.vue'
 import BreakCard from '@/components/BreakCard.vue'
 import StatCard from '@/components/StatCard.vue'
 import { invoke } from '@tauri-apps/api/core'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
 const activityStore = useActivityStore()
 const statsStore = useStatisticsStore()
 const settingsStore = useSettingsStore()
+const { t, locale } = useI18n()
 
 const aiTip = ref<string | null>(null)
 const loadingTip = ref(false)
@@ -217,14 +219,14 @@ async function fetchAiTip() {
   loadingTip.value = true
   aiTipError.value = null
   try {
-    const tip = await invoke<string | null>('generate_daily_tip')
+    const tip = await invoke<string | null>('generate_daily_tip', { language: locale.value })
     if (tip) {
       aiTip.value = tip
     } else {
-      aiTip.value = 'Tetap jaga postur tubuh tegak dan sempatkan istirahat sejenak di sela-sela coding!'
+      aiTip.value = t('dashboard.aiFallback')
     }
   } catch (e: any) {
-    aiTipError.value = `Gagal memuat saran AI: ${e?.message || e}`
+    aiTipError.value = t('dashboard.aiError', { error: e?.message || e })
   } finally {
     loadingTip.value = false
   }
@@ -298,6 +300,6 @@ const dotClass = computed(() => {
 })
 
 const currentDate = computed(() =>
-  new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date())
+  new Intl.DateTimeFormat(locale.value === 'id' ? 'id-ID' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date())
 )
 </script>

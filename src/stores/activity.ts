@@ -14,6 +14,7 @@ import {
 } from '@/services/tauri'
 import type { CurrentActivity, PlatformCapabilities, ActivityState } from '@/types'
 import { stateLabel, stateColor } from '@/types'
+import i18n from '@/i18n'
 
 export const useActivityStore = defineStore('activity', () => {
   // ─── State
@@ -36,7 +37,10 @@ export const useActivityStore = defineStore('activity', () => {
   })
   const idleSeconds = computed(() => localIdleSeconds.value)
   const activeSeconds = computed(() => localActiveSeconds.value)
-  const stateText = computed(() => stateLabel(state.value))
+  const stateText = computed(() => {
+    i18n.global.locale.value
+    return i18n.global.t(`status.${state.value.charAt(0).toLowerCase()}${state.value.slice(1)}`, stateLabel(state.value))
+  })
   const stateClass = computed(() => stateColor(state.value))
 
   // ─── Actions

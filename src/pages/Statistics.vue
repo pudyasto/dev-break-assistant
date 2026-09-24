@@ -3,8 +3,8 @@
 
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-[26px] font-semibold text-[var(--color-text)] tracking-tight">Insights</h1>
-        <p class="text-[14px] text-muted mt-1">Your desk habits over time</p>
+        <h1 class="text-[26px] font-semibold text-[var(--color-text)] tracking-tight">{{ t('statistics.title') }}</h1>
+        <p class="text-[14px] text-muted mt-1">{{ t('statistics.subtitle') }}</p>
       </div>
 
       <div class="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg gap-1">
@@ -15,7 +15,7 @@
           class="px-4 py-1.5 text-[13px] font-medium rounded-md transition-colors"
           :class="selectedView === opt ? 'bg-white dark:bg-gray-700 text-[var(--color-text)] shadow-sm' : 'text-muted hover:text-[var(--color-text)]'"
         >
-          {{ opt === 'today' ? 'Today' : opt === '7_days' ? '7 Days' : '30 Days' }}
+          {{ opt === 'today' ? t('statistics.today') : opt === '7_days' ? t('statistics.sevenDays') : t('statistics.thirtyDays') }}
         </button>
       </div>
     </div>
@@ -26,23 +26,23 @@
         {{ viewLabel }}
       </h2>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Active Time"        :value="fmt(aggregatedStats.activeSeconds)"  :delay="0" />
-        <StatCard label="Idle Time"          :value="fmt(aggregatedStats.idleSeconds)"    :delay="1" />
-        <StatCard label="Break Time"         :value="fmt(aggregatedStats.breakSeconds)"   :delay="2" />
-        <StatCard label="Total Breaks"       :value="String(aggregatedStats.breakCount)"  :delay="3" />
-        <StatCard label="Eye Breaks"         :value="String(aggregatedStats.eyeBreakCount)"  :delay="4" />
-        <StatCard label="Movement Breaks"    :value="String(aggregatedStats.shortBreakCount)" :delay="5" />
-        <StatCard label="Long Breaks"        :value="String(aggregatedStats.longBreakCount)"  :delay="6" />
-        <StatCard label="Longest Streak"     :value="fmt(aggregatedStats.longestActiveStreakSeconds)" :delay="7" />
-        <StatCard label="Skipped Reminders"  :value="String(aggregatedStats.skippedBreakCount)"  :delay="8" />
-        <StatCard label="Snoozed Reminders"  :value="String(aggregatedStats.snoozedReminderCount)"  :delay="9" />
+        <StatCard :label="t('dashboard.activeTime')" :value="fmt(aggregatedStats.activeSeconds)" :delay="0" />
+        <StatCard :label="t('statistics.idleTime')" :value="fmt(aggregatedStats.idleSeconds)" :delay="1" />
+        <StatCard :label="t('dashboard.breakTime')" :value="fmt(aggregatedStats.breakSeconds)" :delay="2" />
+        <StatCard :label="t('statistics.totalBreaks')" :value="String(aggregatedStats.breakCount)" :delay="3" />
+        <StatCard :label="t('statistics.eyeBreaks')" :value="String(aggregatedStats.eyeBreakCount)" :delay="4" />
+        <StatCard :label="t('statistics.movementBreaks')" :value="String(aggregatedStats.shortBreakCount)" :delay="5" />
+        <StatCard :label="t('statistics.longBreaks')" :value="String(aggregatedStats.longBreakCount)" :delay="6" />
+        <StatCard :label="t('dashboard.longestStreak')" :value="fmt(aggregatedStats.longestActiveStreakSeconds)" :delay="7" />
+        <StatCard :label="t('statistics.skipped')" :value="String(aggregatedStats.skippedBreakCount)" :delay="8" />
+        <StatCard :label="t('statistics.snoozed')" :value="String(aggregatedStats.snoozedReminderCount)" :delay="9" />
       </div>
     </div>
 
     <!-- Empty state -->
     <div v-else class="card p-12 flex flex-col items-center gap-3 text-center">
-      <p class="font-semibold text-[var(--color-text)]">No data available</p>
-      <p class="text-[13px] text-muted">Start working and DevBreak will track your desk habits.</p>
+      <p class="font-semibold text-[var(--color-text)]">{{ t('statistics.emptyTitle') }}</p>
+      <p class="text-[13px] text-muted">{{ t('statistics.emptyDescription') }}</p>
     </div>
 
   </div>
@@ -54,8 +54,10 @@ import { useStatisticsStore } from '@/stores/statistics'
 import { formatDuration } from '@/types'
 import type { TodayStatistics } from '@/types'
 import StatCard from '@/components/StatCard.vue'
+import { useI18n } from 'vue-i18n'
 
 const statsStore = useStatisticsStore()
+const { t } = useI18n()
 const fmt = (s: number) => formatDuration(s)
 
 const selectedView = ref('today')
@@ -72,9 +74,9 @@ onMounted(async () => {
 })
 
 const viewLabel = computed(() => {
-  if (selectedView.value === 'today') return `Today — ${statsStore.todayStats?.localDate || '...'}`
-  if (selectedView.value === '7_days') return 'Last 7 Days'
-  return 'Last 30 Days'
+  if (selectedView.value === 'today') return t('statistics.todayLabel', { date: statsStore.todayStats?.localDate || '...' })
+  if (selectedView.value === '7_days') return t('statistics.lastSeven')
+  return t('statistics.lastThirty')
 })
 
 const aggregatedStats = computed<TodayStatistics | null>(() => {

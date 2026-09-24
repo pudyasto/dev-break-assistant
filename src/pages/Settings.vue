@@ -2,8 +2,8 @@
   <div class="h-full overflow-y-auto p-8 space-y-8 animate-fade-in bg-[var(--color-bg)]">
 
     <div>
-      <h1 class="text-[26px] font-semibold text-[var(--color-text)] tracking-tight">Settings</h1>
-      <p class="text-[14px] text-muted mt-1">Customize your break schedule and preferences</p>
+      <h1 class="text-[26px] font-semibold text-[var(--color-text)] tracking-tight">{{ t('settings.title') }}</h1>
+      <p class="text-[14px] text-muted mt-1">{{ t('settings.subtitle') }}</p>
     </div>
 
     <div v-if="settingsStore.loading" class="flex items-center justify-center py-20">
@@ -11,29 +11,40 @@
     </div>
 
     <template v-else-if="form">
+      <section>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">{{ t('language.title') }}</h2>
+        <div class="card">
+          <SettingRow :label="t('language.title')" :description="t('language.description')">
+            <select class="form-input text-sm" :value="locale" @change="changeLanguage(($event.target as HTMLSelectElement).value)">
+              <option value="id">{{ t('language.indonesian') }}</option>
+              <option value="en">{{ t('language.english') }}</option>
+            </select>
+          </SettingRow>
+        </div>
+      </section>
 
       <!-- ── Break Intervals ─────────────────────────────────────── -->
       <section>
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">Break Intervals</h2>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">{{ t('settings.breakIntervals') }}</h2>
         <div class="card divide-y divide-app">
 
           <SettingRow
-            label="Eye Break"
-            description="Remind every N minutes to look away for 20 seconds"
+            :label="t('settings.eyeBreak')"
+            :description="t('settings.eyeBreakDesc')"
           >
             <NumberInput v-model="form.breakEyeAfterMinutes" :min="5" :max="60" suffix="min" id="setting-eye-after" />
           </SettingRow>
 
           <SettingRow
-            label="Short Movement Break"
-            description="Movement reminder after N minutes of continuous work"
+            :label="t('settings.shortBreak')"
+            :description="t('settings.shortBreakDesc')"
           >
             <NumberInput v-model="form.breakShortAfterMinutes" :min="15" :max="120" suffix="min" id="setting-short-after" />
           </SettingRow>
 
           <SettingRow
-            label="Long Break"
-            description="Long break reminder after N minutes of continuous work"
+            :label="t('settings.longBreak')"
+            :description="t('settings.longBreakDesc')"
           >
             <NumberInput v-model="form.breakLongAfterMinutes" :min="60" :max="240" suffix="min" id="setting-long-after" />
           </SettingRow>
@@ -42,18 +53,18 @@
 
       <!-- ── Break Durations ────────────────────────────────────── -->
       <section>
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">Break Durations</h2>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">{{ t('settings.breakDurations') }}</h2>
         <div class="card divide-y divide-app">
 
-          <SettingRow label="Eye Break Duration">
+          <SettingRow :label="t('settings.eyeDuration')">
             <NumberInput v-model="form.breakEyeDurationSeconds" :min="10" :max="60" suffix="sec" id="setting-eye-dur" />
           </SettingRow>
 
-          <SettingRow label="Short Break Duration">
+          <SettingRow :label="t('settings.shortDuration')">
             <NumberInput v-model="form.breakShortDurationSeconds" :min="60" :max="600" suffix="sec" id="setting-short-dur" />
           </SettingRow>
 
-          <SettingRow label="Long Break Duration">
+          <SettingRow :label="t('settings.longDuration')">
             <NumberInput v-model="form.breakLongDurationSeconds" :min="120" :max="1800" suffix="sec" id="setting-long-dur" />
           </SettingRow>
 
@@ -62,19 +73,19 @@
 
       <!-- ── Detection ─────────────────────────────────────────── -->
       <section>
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">Detection</h2>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">{{ t('settings.detection') }}</h2>
         <div class="card divide-y divide-app">
 
           <SettingRow
-            label="Idle Cutoff"
-            description="Consider you active if idle < N seconds"
+            :label="t('settings.idleCutoff')"
+            :description="t('settings.idleCutoffDesc')"
           >
             <NumberInput v-model="form.activityIdleCutoffSeconds" :min="10" :max="300" suffix="sec" id="setting-idle-cutoff" />
           </SettingRow>
 
           <SettingRow
-            label="Auto-Break Detection"
-            description="Automatically mark break complete when idle >= N seconds"
+            :label="t('settings.autoBreak')"
+            :description="t('settings.autoBreakDesc')"
           >
             <NumberInput v-model="form.breakAutoCompleteIdleSeconds" :min="60" :max="600" suffix="sec" id="setting-auto-break" />
           </SettingRow>
@@ -84,18 +95,18 @@
 
       <!-- ── App Behavior ──────────────────────────────────────── -->
       <section>
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">App Behavior</h2>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">{{ t('settings.behavior') }}</h2>
         <div class="card divide-y divide-app">
 
-          <SettingRow label="Enable Notifications">
+          <SettingRow :label="t('settings.notifications')">
             <ToggleInput v-model="form.notificationEnabled" id="setting-notifications" />
           </SettingRow>
 
-          <SettingRow label="Start on Login">
+          <SettingRow :label="t('settings.startLogin')">
             <ToggleInput v-model="form.autostartEnabled" id="setting-autostart" />
           </SettingRow>
 
-          <SettingRow label="Start Minimized">
+          <SettingRow :label="t('settings.startMinimized')">
             <ToggleInput v-model="form.uiStartMinimized" id="setting-start-minimized" />
           </SettingRow>
 
@@ -104,12 +115,12 @@
 
       <!-- ── Privacy ───────────────────────────────────────────── -->
       <section>
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">Privacy</h2>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">{{ t('settings.privacy') }}</h2>
         <div class="card divide-y divide-app">
 
           <SettingRow
-            label="Track Foreground App"
-            description="Record which app is active (name only, never window title). Disabled by default."
+            :label="t('settings.trackApp')"
+            :description="t('settings.trackAppDesc')"
           >
             <ToggleInput v-model="form.privacyTrackForegroundApp" id="setting-track-app" />
           </SettingRow>
@@ -119,26 +130,26 @@
 
       <!-- ── AI Integration ────────────────────────────────────── -->
       <section>
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">AI Integration (Local Only)</h2>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">{{ t('settings.ai') }}</h2>
         <div class="card divide-y divide-app">
-          <SettingRow label="Enable AI Wellness Tips" description="Generates a local tip based on your daily stats.">
+          <SettingRow :label="t('settings.aiEnable')" :description="t('settings.aiEnableDesc')">
             <ToggleInput v-model="form.aiEnabled" id="setting-ai-enabled" />
           </SettingRow>
-          <SettingRow label="AI Endpoint (e.g. Ollama)" description="URL to local/remote Ollama instance (e.g. http://192.168.81.201:11434 atau dengan /api/generate)">
+          <SettingRow :label="t('settings.aiEndpoint')" :description="t('settings.aiEndpointDesc')">
             <StringInput v-model="form.aiEndpoint" class="w-64 sm:w-80" id="setting-ai-endpoint" />
           </SettingRow>
-          <SettingRow label="AI Model" description="Model name (e.g., ministral-3:14b, llama3)">
+          <SettingRow :label="t('settings.aiModel')" :description="t('settings.aiModelDesc')">
             <StringInput v-model="form.aiModel" class="w-64 sm:w-80" id="setting-ai-model" />
           </SettingRow>
 
           <div class="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[var(--color-bg-secondary)]/30">
             <div class="min-w-0">
-              <p class="text-[13px] font-medium text-[var(--color-text)]">Uji Koneksi AI</p>
+              <p class="text-[13px] font-medium text-[var(--color-text)]">{{ t('settings.testTitle') }}</p>
               <p v-if="testResult" class="text-xs mt-1" :class="testResult.success ? 'text-green-400' : 'text-red-400'">
                 {{ testResult.message }}
               </p>
               <p v-else class="text-xs text-muted mt-0.5">
-                Pastikan host Ollama dapat dijangkau dari komputer ini.
+                {{ t('settings.testHint') }}
               </p>
             </div>
             <button
@@ -149,7 +160,7 @@
               @click="handleTestAi"
             >
               <span v-if="testingAi" class="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin"></span>
-              {{ testingAi ? 'Menghubungkan...' : 'Test Connection' }}
+              {{ testingAi ? t('settings.testing') : t('settings.test') }}
             </button>
           </div>
         </div>
@@ -157,13 +168,13 @@
 
       <!-- ── Data Management ────────────────────────────────────── -->
       <section>
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-red-400 mb-4">Data Management</h2>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-red-400 mb-4">{{ t('settings.data') }}</h2>
         <div class="card border border-red-500/20 divide-y divide-app bg-red-950/10">
           <div class="flex items-center justify-between px-6 py-5 gap-4">
             <div class="min-w-0">
-              <p class="text-[14px] font-medium text-[var(--color-text)]">Reset Activity Logs & History</p>
+              <p class="text-[14px] font-medium text-[var(--color-text)]">{{ t('settings.resetTitle') }}</p>
               <p class="text-[13px] text-muted mt-1 leading-relaxed">
-                Hapus semua log aktivitas, riwayat sesi kerja, break records, dan statistik harian. Pengaturan aplikasi Anda akan tetap tersimpan.
+                {{ t('settings.resetDesc') }}
               </p>
             </div>
             <button
@@ -175,7 +186,7 @@
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
-              Reset Data
+              {{ t('settings.reset') }}
             </button>
           </div>
         </div>
@@ -185,10 +196,10 @@
       <div class="flex items-center justify-between pt-2">
         <div class="flex items-center gap-4">
           <span v-if="saved" class="flex items-center gap-2 text-sm text-green-500 animate-fade-in">
-            <span>✓</span> Settings saved
+            <span>✓</span> {{ t('settings.saved') }}
           </span>
           <span v-if="resetSuccess" class="flex items-center gap-2 text-sm text-green-500 animate-fade-in">
-            <span>✓</span> Semua data log & statistik berhasil direset!
+            <span>✓</span> {{ t('settings.resetSuccess') }}
           </span>
           <span v-else-if="settingsStore.error" class="text-sm text-red-500">{{ settingsStore.error }}</span>
         </div>
@@ -200,7 +211,7 @@
           @click="save"
         >
           <span v-if="settingsStore.saving" class="w-4 h-4 rounded-full border-2 border-[var(--color-bg)] border-t-transparent animate-spin"></span>
-          {{ settingsStore.saving ? 'Saving…' : 'Save Settings' }}
+          {{ settingsStore.saving ? t('common.saving') : t('common.save') }}
         </button>
       </div>
 
@@ -219,13 +230,13 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-base font-semibold text-[var(--color-text)]">Konfirmasi Reset Data</h3>
-            <p class="text-xs text-muted">Tindakan ini tidak dapat dibatalkan</p>
+            <h3 class="text-base font-semibold text-[var(--color-text)]">{{ t('settings.confirmTitle') }}</h3>
+            <p class="text-xs text-muted">{{ t('settings.confirmWarning') }}</p>
           </div>
         </div>
 
         <p class="text-sm text-[var(--color-text-sec)] leading-relaxed">
-          Apakah Anda yakin ingin menghapus semua data? Seluruh riwayat sesi kerja, log aktivitas, catatan istirahat, dan statistik harian sebelumnya akan dihapus permanen dari database lokal.
+          {{ t('settings.confirmText') }}
         </p>
 
         <div class="flex items-center justify-end gap-3 pt-2">
@@ -235,7 +246,7 @@
             :disabled="resetting"
             @click="showResetModal = false"
           >
-            Batal
+            {{ t('common.cancel') }}
           </button>
           <button
             id="confirm-reset-btn"
@@ -245,7 +256,7 @@
             @click="confirmResetData"
           >
             <span v-if="resetting" class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"></span>
-            {{ resetting ? 'Mereset...' : 'Ya, Hapus Semua Log' }}
+            {{ resetting ? t('settings.resetting') : t('settings.deleteAll') }}
           </button>
         </div>
       </div>
@@ -260,6 +271,8 @@ import { useStatisticsStore } from '@/stores/statistics'
 import { useActivityStore } from '@/stores/activity'
 import { resetAllData, testAiConnection } from '@/services/tauri'
 import type { AppSettings } from '@/types'
+import { useI18n } from 'vue-i18n'
+import { setLocale, type SupportedLocale } from '@/i18n'
 
 // ─── Sub-components defined inline for simplicity
 import { defineComponent, h } from 'vue'
@@ -335,6 +348,7 @@ const StringInput = defineComponent({
 const settingsStore = useSettingsStore()
 const statisticsStore = useStatisticsStore()
 const activityStore = useActivityStore()
+const { t, locale } = useI18n()
 
 const form = ref<AppSettings | null>(null)
 const saved = ref(false)
@@ -353,16 +367,20 @@ async function handleTestAi() {
     const res = await testAiConnection(form.value.aiEndpoint, form.value.aiModel || 'llama3')
     testResult.value = {
       success: true,
-      message: `✓ Terhubung! Respons AI: "${res.slice(0, 80)}${res.length > 80 ? '...' : ''}"`
+      message: t('settings.testSuccess', { response: `${res.slice(0, 80)}${res.length > 80 ? '...' : ''}` })
     }
   } catch (err: any) {
     testResult.value = {
       success: false,
-      message: `✗ Gagal terhubung: ${err?.message || err}`
+      message: t('settings.testError', { error: err?.message || err })
     }
   } finally {
     testingAi.value = false
   }
+}
+
+function changeLanguage(value: string) {
+  if (value === 'en' || value === 'id') setLocale(value as SupportedLocale)
 }
 
 onMounted(async () => {

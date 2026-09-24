@@ -26,7 +26,7 @@
           :class="{ active: route.path === item.to }"
         >
           <span class="w-5 h-5 flex items-center justify-center" v-html="item.icon"></span>
-          <span>{{ item.label }}</span>
+          <span>{{ t(item.label) }}</span>
         </RouterLink>
       </nav>
 
@@ -57,10 +57,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useActivityStore } from '@/stores/activity'
 
 const route = useRoute()
 const activityStore = useActivityStore()
+const { t } = useI18n()
 
 const iconDashboard = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"></rect><rect x="14" y="3" width="7" height="5" rx="1"></rect><rect x="14" y="12" width="7" height="9" rx="1"></rect><rect x="3" y="16" width="7" height="5" rx="1"></rect></svg>`
 const iconActivity = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>`
@@ -70,12 +72,12 @@ const iconStretches = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height
 const iconSettings = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`
 
 const navItems = [
-  { to: '/',           icon: iconDashboard, label: 'Dashboard' },
-  { to: '/activity',   icon: iconActivity,  label: 'Activity'  },
-  { to: '/history',    icon: iconHistory,   label: 'History'   },
-  { to: '/statistics', icon: iconInsights,  label: 'Insights'  },
-  { to: '/stretches',  icon: iconStretches, label: 'Stretches' },
-  { to: '/settings',   icon: iconSettings,  label: 'Settings'  },
+  { to: '/',           icon: iconDashboard, label: 'nav.dashboard' },
+  { to: '/activity',   icon: iconActivity,  label: 'nav.activity'  },
+  { to: '/history',    icon: iconHistory,   label: 'nav.history'   },
+  { to: '/statistics', icon: iconInsights,  label: 'nav.insights'  },
+  { to: '/stretches',  icon: iconStretches, label: 'nav.stretches' },
+  { to: '/settings',   icon: iconSettings,  label: 'nav.settings'  },
 ]
 
 const statusDotClass = computed(() => {
@@ -87,8 +89,8 @@ const statusDotClass = computed(() => {
 })
 
 const statusText = computed(() => {
-  if (activityStore.state === 'Idle') return 'Idle'
-  if (activityStore.state === 'BreakDue') return 'Break Due'
-  return 'Monitoring'
+  if (activityStore.state === 'Idle') return t('status.idle')
+  if (activityStore.state === 'BreakDue') return t('status.breakDue')
+  return t('status.monitoring')
 })
 </script>

@@ -60,7 +60,10 @@ pub async fn test_ai_connection(
 }
 
 #[tauri::command]
-pub async fn generate_daily_tip(state: State<'_, AppState>) -> Result<Option<String>, AppError> {
+pub async fn generate_daily_tip(
+    state: State<'_, AppState>,
+    language: Option<String>,
+) -> Result<Option<String>, AppError> {
     let track_ai = repositories::get_setting(&state.db, "ai.enabled").await?.unwrap_or_else(|| "false".to_string());
     if track_ai != "true" {
         return Ok(None);
@@ -75,12 +78,18 @@ pub async fn generate_daily_tip(state: State<'_, AppState>) -> Result<Option<Str
     let stats_list = repositories::get_statistics_range(&state.db, &yesterday, &yesterday).await?;
     let stats = stats_list.first();
 
+    let language_instruction = if language.as_deref() == Some("id") {
+        "Respond only in Indonesian (Bahasa Indonesia)."
+    } else {
+        "Respond only in English."
+    };
+
     let prompt = if let Some(s) = stats {
         let active_hours = s.active_seconds as f64 / 3600.0;
         let score = s.desk_habit_score.unwrap_or(100);
-        format!("You are a desktop wellness assistant. Yesterday the user worked for {:.1} hours, took {} breaks, skipped {} breaks, and had a wellness score of {}/100. Write a single, brief, encouraging 1-sentence wellness tip for them today based on these stats. Do not greet or explain, just the tip.", active_hours, s.break_count, s.skipped_break_count, score)
+        format!("You are a desktop wellness assistant. Yesterday the user worked for {:.1} hours, took {} breaks, skipped {} breaks, and had a wellness score of {}/100. Write a single, brief, encouraging 1-sentence wellness tip for them today based on these stats. Do not greet or explain, just the tip. {}", active_hours, s.break_count, s.skipped_break_count, score, language_instruction)
     } else {
-        "You are a desktop wellness assistant. Write a single, brief, encouraging 1-sentence wellness tip for a software developer today. Do not greet or explain, just the tip.".to_string()
+        format!("You are a desktop wellness assistant. Write a single, brief, encouraging 1-sentence wellness tip for a software developer today. Do not greet or explain, just the tip. {}", language_instruction)
     };
 
     let client = Client::builder()

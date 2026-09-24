@@ -5,14 +5,14 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <div class="flex items-center gap-3">
-          <h1 class="text-[26px] font-semibold text-[var(--color-text)] tracking-tight">Activity Monitor</h1>
+          <h1 class="text-[26px] font-semibold text-[var(--color-text)] tracking-tight">{{ t('nav.activity') }}</h1>
           <span class="badge" :class="stateBadgeClass">
             <span class="glow-dot text-[10px]" :class="dotClass"></span>
             {{ activityStore.stateText }}
           </span>
         </div>
         <p class="text-[14px] text-muted mt-1">
-          Live desk activity monitoring, manual break controls, and platform telemetry.
+          {{ t('activity.subtitle') }}
         </p>
       </div>
 
@@ -29,20 +29,20 @@
             <rect x="6" y="4" width="4" height="16"></rect>
             <rect x="14" y="4" width="4" height="16"></rect>
           </svg>
-          <span>{{ isPaused ? 'Resume Monitoring' : 'Pause Monitoring' }}</span>
+          <span>{{ isPaused ? t('activity.resume') : t('activity.pause') }}</span>
         </button>
 
         <button
           @click="refreshData"
           class="btn bg-[var(--color-surface)] border border-[var(--color-border)] text-muted hover:text-[var(--color-text)] hover:bg-[var(--color-hover)]"
-          title="Refresh activity data"
+          :title="t('activity.refreshTitle')"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="{ 'animate-spin': isRefreshing }">
             <polyline points="23 4 23 10 17 10"></polyline>
             <polyline points="1 20 1 14 7 14"></polyline>
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
           </svg>
-          <span>Refresh</span>
+          <span>{{ t('common.refresh') }}</span>
         </button>
       </div>
     </div>
@@ -59,14 +59,14 @@
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="badge badge-success">Break In Progress</span>
-              <span class="text-xs text-muted">{{ activeManualBreak?.title || 'Rest Session' }}</span>
+              <span class="badge badge-success">{{ t('activity.breakProgress') }}</span>
+              <span class="text-xs text-muted">{{ activeManualBreak?.title || t('activity.restSession') }}</span>
             </div>
             <h2 class="text-xl font-bold text-[var(--color-text)] mt-1">
-              Time to relax and step away from the screen
+              {{ t('activity.relaxTitle') }}
             </h2>
             <p class="text-sm text-muted mt-0.5">
-              {{ activeManualBreak?.hint || 'Take deep breaths, stretch your body, and let your eyes rest.' }}
+              {{ activeManualBreak?.hint || t('activity.relaxHint') }}
             </p>
           </div>
         </div>
@@ -77,13 +77,13 @@
           </div>
           <div class="flex items-center gap-2">
             <button @click="finishActiveBreak" class="btn-primary text-xs py-1.5 px-3">
-              Complete Break
+              {{ t('activity.complete') }}
             </button>
             <button @click="snoozeActiveBreak" class="btn bg-[var(--color-surface)] border border-[var(--color-border)] text-muted hover:text-[var(--color-text)] text-xs py-1.5 px-3">
-              Snooze 5m
+              {{ t('activity.snooze') }}
             </button>
             <button @click="cancelActiveBreak" class="btn text-muted hover:text-[var(--color-red)] text-xs py-1.5 px-2">
-              Dismiss
+              {{ t('activity.dismiss') }}
             </button>
           </div>
         </div>
@@ -98,16 +98,16 @@
         :state="activityStore.state"
         :seconds="activityStore.activeSeconds"
         :max-seconds="shortBreakThresholdSec"
-        subtitle="current active session"
+        :subtitle="t('activity.currentSession')"
       />
 
       <!-- Idle Counter & Status Card -->
       <div class="card p-6 flex flex-col justify-between gap-5">
         <div>
           <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-semibold uppercase tracking-widest text-muted">Desk Idle Detector</span>
+            <span class="text-xs font-semibold uppercase tracking-widest text-muted">{{ t('activity.detector') }}</span>
             <span class="text-xs font-mono text-muted">
-              Threshold: {{ idleCutoffSec }}s
+              {{ t('activity.threshold', { seconds: idleCutoffSec }) }}
             </span>
           </div>
 
@@ -115,7 +115,7 @@
             <span class="text-4xl font-bold font-mono text-[var(--color-text)] animate-counter tracking-tight">
               {{ formatDuration(activityStore.idleSeconds) }}
             </span>
-            <span class="text-xs text-muted font-medium">away from keyboard/mouse</span>
+            <span class="text-xs text-muted font-medium">{{ t('activity.away') }}</span>
           </div>
 
           <!-- Progress bar towards auto-break cutoff -->
@@ -130,7 +130,7 @@
           </div>
 
           <div class="flex justify-between items-center text-[12px] text-muted mt-2">
-            <span>{{ idleProgress >= 100 ? 'Auto-break triggered' : `${Math.max(0, idleCutoffSec - activityStore.idleSeconds)}s remaining until auto-break` }}</span>
+            <span>{{ idleProgress >= 100 ? t('activity.autoTriggered') : t('activity.remaining', { seconds: Math.max(0, idleCutoffSec - activityStore.idleSeconds) }) }}</span>
             <span>{{ Math.round(idleProgress) }}%</span>
           </div>
         </div>
@@ -138,15 +138,15 @@
         <!-- Session Status Info -->
         <div class="border-t border-app pt-4 space-y-2.5">
           <div class="flex items-center justify-between text-xs">
-            <span class="text-muted">Today's Total Active Time</span>
+            <span class="text-muted">{{ t('activity.totalActive') }}</span>
             <span class="font-medium text-[var(--color-text)] font-mono">{{ formatDuration(statsStore.todayStats?.activeSeconds ?? 0) }}</span>
           </div>
           <div class="flex items-center justify-between text-xs">
-            <span class="text-muted">Breaks Completed Today</span>
-            <span class="font-medium text-[var(--color-green)] font-mono">{{ statsStore.todayStats?.breakCount ?? 0 }} breaks</span>
+            <span class="text-muted">{{ t('activity.completedToday') }}</span>
+            <span class="font-medium text-[var(--color-green)] font-mono">{{ t('activity.breakCount', { count: statsStore.todayStats?.breakCount ?? 0 }) }}</span>
           </div>
           <div class="flex items-center justify-between text-xs">
-            <span class="text-muted">Longest Focus Streak</span>
+            <span class="text-muted">{{ t('activity.focusStreak') }}</span>
             <span class="font-medium text-[var(--color-text)] font-mono">{{ formatDuration(statsStore.todayStats?.longestActiveStreakSeconds ?? 0) }}</span>
           </div>
         </div>
@@ -158,8 +158,8 @@
     <div>
       <div class="flex items-center justify-between mb-4">
         <div>
-          <h2 class="text-xs font-semibold uppercase tracking-widest text-muted">Quick Break Launcher</h2>
-          <p class="text-xs text-muted mt-0.5">Start a manual break anytime to reset your focus and eye strain</p>
+          <h2 class="text-xs font-semibold uppercase tracking-widest text-muted">{{ t('activity.quickBreaks') }}</h2>
+          <p class="text-xs text-muted mt-0.5">{{ t('activity.quickBreaksHint') }}</p>
         </div>
       </div>
 
@@ -174,17 +174,17 @@
           </div>
           <div>
             <h3 class="font-semibold text-[15px] text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">
-              20-20-20 Eye Rest
+              {{ t('activity.eyeTitle') }}
             </h3>
             <p class="text-[13px] text-muted mt-1 leading-relaxed">
-              Look at an object 20 feet away for 20 seconds to prevent digital eye strain.
+              {{ t('activity.eyeDesc') }}
             </p>
           </div>
           <button
-            @click="startManualBreak('eye', 20, '20-20-20 Eye Rest', '👁️', 'Focus on a distant object across the room or out a window.')"
+            @click="startManualBreak('eye', 20, t('activity.eyeTitle'), '👁️', t('activity.eyeDesc'))"
             class="btn bg-[var(--color-surface-elev)] hover:bg-[var(--color-accent)] hover:text-white text-xs py-2 w-full justify-center transition-all"
           >
-            Start Eye Break
+            {{ t('activity.startEye') }}
           </button>
         </div>
 
@@ -198,17 +198,17 @@
           </div>
           <div>
             <h3 class="font-semibold text-[15px] text-[var(--color-text)] group-hover:text-[var(--color-green)] transition-colors">
-              Movement Break
+              {{ t('dashboard.movementBreak') }}
             </h3>
             <p class="text-[13px] text-muted mt-1 leading-relaxed">
-              Stand up, stretch your neck, shoulders, and wrists to relieve muscle tension.
+              {{ t('activity.movementDesc') }}
             </p>
           </div>
           <button
-            @click="startManualBreak('short', 180, 'Movement Break', '🧘', 'Stand up, roll your shoulders, stretch your arms and wrists.')"
+            @click="startManualBreak('short', 180, t('dashboard.movementBreak'), '🧘', t('activity.movementDesc'))"
             class="btn bg-[var(--color-surface-elev)] hover:bg-[var(--color-green)] hover:text-white text-xs py-2 w-full justify-center transition-all"
           >
-            Start 3m Movement
+            {{ t('activity.startMovement') }}
           </button>
         </div>
 
@@ -222,17 +222,17 @@
           </div>
           <div>
             <h3 class="font-semibold text-[15px] text-[var(--color-text)] group-hover:text-[var(--color-amber)] transition-colors">
-              Deep Rest Break
+              {{ t('activity.deepRest') }}
             </h3>
             <p class="text-[13px] text-muted mt-1 leading-relaxed">
-              Step away from your workstation completely, hydrate, and take a mental walk.
+              {{ t('activity.deepRestDesc') }}
             </p>
           </div>
           <button
-            @click="startManualBreak('long', 600, 'Deep Rest Break', '☕', 'Leave your desk completely. Grab a glass of water and walk around.')"
+            @click="startManualBreak('long', 600, t('activity.deepRest'), '☕', t('activity.deepRestDesc'))"
             class="btn bg-[var(--color-surface-elev)] hover:bg-[var(--color-amber)] hover:text-white text-xs py-2 w-full justify-center transition-all"
           >
-            Start 10m Break
+            {{ t('activity.startLong') }}
           </button>
         </div>
       </div>
@@ -240,7 +240,7 @@
 
     <!-- ── Platform Telemetry & Privacy Sensor Status ───────────────────── -->
     <div>
-      <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">Hardware Telemetry & Privacy</h2>
+      <h2 class="text-xs font-semibold uppercase tracking-widest text-muted mb-4">{{ t('activity.telemetry') }}</h2>
       <div class="card p-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
@@ -304,15 +304,15 @@
     <!-- ── Today's Work Sessions Timeline ──────────────────────────────── -->
     <div>
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted">Today's Work Sessions</h2>
+        <h2 class="text-xs font-semibold uppercase tracking-widest text-muted">{{ t('activity.workSessions') }}</h2>
         <RouterLink to="/history" class="text-xs text-[var(--color-accent)] hover:underline">
-          View Full History →
+          {{ t('activity.viewHistory') }}
         </RouterLink>
       </div>
 
       <div v-if="statsStore.recentSessions.length === 0" class="card p-8 flex flex-col items-center text-center gap-2">
-        <p class="text-sm font-medium text-[var(--color-text)]">No recorded work sessions yet</p>
-        <p class="text-xs text-muted">Work sessions are created automatically as you work and take breaks.</p>
+        <p class="text-sm font-medium text-[var(--color-text)]">{{ t('activity.noSessions') }}</p>
+        <p class="text-xs text-muted">{{ t('activity.noSessionsHint') }}</p>
       </div>
 
       <div v-else class="space-y-2.5">
@@ -350,10 +350,12 @@ import { useStatisticsStore } from '@/stores/statistics'
 import { useSettingsStore } from '@/stores/settings'
 import { formatDuration } from '@/types'
 import ActivityTimer from '@/components/ActivityTimer.vue'
+import { useI18n } from 'vue-i18n'
 
 const activityStore = useActivityStore()
 const statsStore = useStatisticsStore()
 const settingsStore = useSettingsStore()
+const { t, locale } = useI18n()
 
 const isRefreshing = ref(false)
 
@@ -503,7 +505,7 @@ function sessionBadgeClass(status: string) {
 
 function formatSessionTime(utc: string) {
   try {
-    return new Intl.DateTimeFormat('en-US', {
+    return new Intl.DateTimeFormat(locale.value === 'id' ? 'id-ID' : 'en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,

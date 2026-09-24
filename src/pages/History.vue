@@ -1,13 +1,13 @@
 <template>
   <div class="h-full overflow-y-auto p-8 space-y-8 animate-fade-in bg-[var(--color-bg)]">
     <div>
-      <h1 class="text-[26px] font-semibold text-[var(--color-text)] tracking-tight">History</h1>
-      <p class="text-[14px] text-muted mt-1">Recent work sessions</p>
+      <h1 class="text-[26px] font-semibold text-[var(--color-text)] tracking-tight">{{ t('history.title') }}</h1>
+      <p class="text-[14px] text-muted mt-1">{{ t('history.subtitle') }}</p>
     </div>
 
     <div v-if="statsStore.recentSessions.length === 0" class="card p-12 flex flex-col items-center gap-3 text-center">
-      <p class="font-semibold text-[var(--color-text)]">No sessions yet</p>
-      <p class="text-[13px] text-muted">Your work sessions will appear here once tracking begins.</p>
+      <p class="font-semibold text-[var(--color-text)]">{{ t('history.emptyTitle') }}</p>
+      <p class="text-[13px] text-muted">{{ t('history.emptyDescription') }}</p>
     </div>
 
     <div v-else class="space-y-3">
@@ -22,7 +22,7 @@
             <p class="text-[14px] font-medium text-[var(--color-text)]">
               {{ formatSessionTime(session.startedAtUtc) }}
             </p>
-            <p class="text-[12px] text-muted">{{ fmt(session.activeSeconds) }} active</p>
+            <p class="text-[12px] text-muted">{{ t('history.activeDuration', { duration: fmt(session.activeSeconds) }) }}</p>
           </div>
         </div>
         <span class="badge" :class="sessionBadge(session.status)">{{ session.status }}</span>
@@ -36,9 +36,11 @@
 import { onMounted } from 'vue'
 import { useStatisticsStore } from '@/stores/statistics'
 import { formatDuration } from '@/types'
+import { useI18n } from 'vue-i18n'
 
 
 const statsStore = useStatisticsStore()
+const { t, locale } = useI18n()
 const fmt = (s: number) => formatDuration(s)
 
 onMounted(() => statsStore.fetchRecentSessions())
@@ -56,7 +58,7 @@ function sessionBadge(status: string) {
 }
 
 function formatSessionTime(utc: string) {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(locale.value === 'id' ? 'id-ID' : 'en-US', {
     weekday: 'short', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
   }).format(new Date(utc))
