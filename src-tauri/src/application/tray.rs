@@ -1,18 +1,13 @@
-use tauri::{AppHandle, Manager, Emitter};
+use tauri::{AppHandle, Manager};
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri::tray::{TrayIconBuilder, TrayIconEvent, MouseButton, MouseButtonState};
-use crate::state::AppState;
-use crate::domain::activity::ActivityState;
-use crate::scheduler::monitor::ActivityChangedPayload;
 
 pub fn setup_tray(app_handle: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let dashboard = MenuItemBuilder::with_id("dashboard", "Open Dashboard").build(app_handle)?;
-    let start_break = MenuItemBuilder::with_id("start_break", "Take Break").build(app_handle)?;
-    let pause = MenuItemBuilder::with_id("pause", "Toggle Pause Monitoring").build(app_handle)?;
     let quit = MenuItemBuilder::with_id("quit", "Quit").build(app_handle)?;
 
     let menu = MenuBuilder::new(app_handle)
-        .items(&[&dashboard, &start_break, &pause, &quit])
+        .items(&[&dashboard, &quit])
         .build()?;
 
     let icon = match app_handle.default_window_icon() {
@@ -43,64 +38,7 @@ pub fn setup_tray(app_handle: &AppHandle) -> Result<(), Box<dyn std::error::Erro
                         let _ = window.set_focus();
                     }
                 }
-                "pause" => {
-                    let app = app.clone();
-                    tauri::async_runtime::spawn(async move {
-                        let state = app.state::<AppState>();
-                        let is_now_paused = {
-                            let mut paused = state.monitoring_paused.write().await;
-                            *paused = !*paused;
-                            *paused
-                        };
-                        tracing::info!("Monitoring paused toggled to: {}", is_now_paused);
 
-                        let mut activity = state.current_activity.write().await;
-                        if is_now_paused {
-                            activity.state = ActivityState::Paused;
-                        } else {
-                            activity.state = ActivityState::Active;
-                        }
-
-                        let payload = ActivityChangedPayload {
-                            state: activity.state.clone(),
-                            idle_seconds: activity.idle_seconds,
-                            active_session_seconds: activity.active_session_seconds,
-                        };
-                        let _ = app.emit("activity://changed", payload);
-                    });
-                }
-                "start_break" => {
-                    let app = app.clone();
-                    tauri::async_runtime::spawn(async move {
-                        let state = app.state::<AppState>();
-                        tracing::info!("Started break from tray");
-
-                        let _ = crate::application::break_service::BreakService::record_break_session(
-                            &state.db,
-                            None,
-                            "short",
-                            "tray",
-                            0,
-                            "started"
-                        ).await;
-
-                        let mut activity = state.current_activity.write().await;
-                        activity.state = ActivityState::Breaking;
-
-                        let payload = ActivityChangedPayload {
-                            state: ActivityState::Breaking,
-                            idle_seconds: activity.idle_seconds,
-                            active_session_seconds: activity.active_session_seconds,
-                        };
-                        let _ = app.emit("activity://changed", payload);
-
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.unminimize();
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
-                    });
-                }
                 _ => ()
             }
         })
