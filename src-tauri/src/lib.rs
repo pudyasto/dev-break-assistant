@@ -64,6 +64,14 @@ pub fn run() {
             commands::statistics::get_statistics_range,
             commands::ai::generate_daily_tip,
             commands::ai::test_ai_connection,
+            commands::ai::chat_with_ai,
+            commands::ai::list_chat_conversations,
+            commands::ai::create_chat_conversation,
+            commands::ai::get_chat_messages,
+            commands::ai::save_chat_message,
+            commands::ai::archive_chat_conversation,
+            commands::ai::delete_chat_conversation,
+            commands::ai::delete_all_chat_conversations,
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();
@@ -169,4 +177,3 @@ async fn setup(app_handle: tauri::AppHandle) -> Result<(), Box<dyn std::error::E
     tracing::info!("DevBreak setup complete");
     Ok(())
 }
-

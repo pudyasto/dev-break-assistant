@@ -9,6 +9,78 @@ use crate::domain::statistics::TodayStatistics;
 use crate::domain::session::{WorkSession, WorkSessionStatus};
 use crate::errors::AppError;
 
+// ─── AI Chat History ──────────────────────────────────────────────────────────
+
+#[derive(Debug, serde::Serialize, sqlx::FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct ChatConversation {
+    pub id: i64,
+    pub title: String,
+    pub is_archived: bool,
+    pub created_at_utc: String,
+    pub updated_at_utc: String,
+}
+
+#[derive(Debug, serde::Serialize, sqlx::FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct StoredChatMessage {
+    pub id: i64,
+    pub conversation_id: i64,
+    pub role: String,
+    pub content: String,
+    pub created_at_utc: String,
+}
+
+pub async fn list_chat_conversations(pool: &SqlitePool, archived: bool) -> Result<Vec<ChatConversation>, AppError> {
+    Ok(sqlx::query_as::<_, ChatConversation>(
+        "SELECT id, title, is_archived, created_at_utc, updated_at_utc FROM chat_conversations WHERE is_archived = ?1 ORDER BY updated_at_utc DESC"
+    ).bind(archived).fetch_all(pool).await?)
+}
+
+pub async fn create_chat_conversation(pool: &SqlitePool, title: &str) -> Result<ChatConversation, AppError> {
+    let now = Utc::now().to_rfc3339();
+    let result = sqlx::query("INSERT INTO chat_conversations (title, created_at_utc, updated_at_utc) VALUES (?1, ?2, ?2)")
+        .bind(title).bind(&now).execute(pool).await?;
+    Ok(ChatConversation { id: result.last_insert_rowid(), title: title.to_string(), is_archived: false, created_at_utc: now.clone(), updated_at_utc: now })
+}
+
+pub async fn get_chat_messages(pool: &SqlitePool, conversation_id: i64) -> Result<Vec<StoredChatMessage>, AppError> {
+    Ok(sqlx::query_as::<_, StoredChatMessage>(
+        "SELECT id, conversation_id, role, content, created_at_utc FROM chat_messages WHERE conversation_id = ?1 ORDER BY created_at_utc ASC, id ASC"
+    ).bind(conversation_id).fetch_all(pool).await?)
+}
+
+pub async fn save_chat_message(pool: &SqlitePool, conversation_id: i64, role: &str, content: &str) -> Result<StoredChatMessage, AppError> {
+    let now = Utc::now().to_rfc3339();
+    let result = sqlx::query("INSERT INTO chat_messages (conversation_id, role, content, created_at_utc) VALUES (?1, ?2, ?3, ?4)")
+        .bind(conversation_id).bind(role).bind(content).bind(&now).execute(pool).await?;
+    sqlx::query("UPDATE chat_conversations SET updated_at_utc = ?2 WHERE id = ?1")
+        .bind(conversation_id).bind(&now).execute(pool).await?;
+    Ok(StoredChatMessage { id: result.last_insert_rowid(), conversation_id, role: role.to_string(), content: content.to_string(), created_at_utc: now })
+}
+
+pub async fn set_chat_archived(pool: &SqlitePool, conversation_id: i64, archived: bool) -> Result<(), AppError> {
+    sqlx::query("UPDATE chat_conversations SET is_archived = ?2, updated_at_utc = ?3 WHERE id = ?1")
+        .bind(conversation_id).bind(archived).bind(Utc::now().to_rfc3339()).execute(pool).await?;
+    Ok(())
+}
+
+pub async fn delete_chat_conversation(pool: &SqlitePool, conversation_id: i64) -> Result<(), AppError> {
+    sqlx::query("DELETE FROM chat_conversations WHERE id = ?1")
+        .bind(conversation_id)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+pub async fn delete_all_chat_conversations(pool: &SqlitePool) -> Result<(), AppError> {
+    let mut tx = pool.begin().await?;
+    sqlx::query("DELETE FROM chat_messages").execute(&mut *tx).await?;
+    sqlx::query("DELETE FROM chat_conversations").execute(&mut *tx).await?;
+    tx.commit().await?;
+    Ok(())
+}
+
 // ─── Settings ─────────────────────────────────────────────────────────────────
 
 #[derive(sqlx::FromRow)]
@@ -487,6 +559,8 @@ pub async fn close_work_session(
 
 pub async fn clear_all_logs(pool: &SqlitePool) -> Result<(), AppError> {
     let mut tx = pool.begin().await?;
+    sqlx::query("DELETE FROM chat_messages").execute(&mut *tx).await?;
+    sqlx::query("DELETE FROM chat_conversations").execute(&mut *tx).await?;
     sqlx::query("DELETE FROM activity_segments").execute(&mut *tx).await?;
     sqlx::query("DELETE FROM break_sessions").execute(&mut *tx).await?;
     sqlx::query("DELETE FROM reminder_events").execute(&mut *tx).await?;
@@ -498,4 +572,3 @@ pub async fn clear_all_logs(pool: &SqlitePool) -> Result<(), AppError> {
     tracing::info!("All activity logs, sessions, reminders, and daily statistics successfully cleared");
     Ok(())
 }
-

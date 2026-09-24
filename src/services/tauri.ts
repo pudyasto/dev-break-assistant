@@ -15,6 +15,25 @@ import type {
   ActivityChangedPayload,
 } from '@/types'
 
+export interface AiChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface ChatConversation {
+  id: number
+  title: string
+  isArchived: boolean
+  createdAtUtc: string
+  updatedAtUtc: string
+}
+
+export interface StoredChatMessage extends AiChatMessage {
+  id: number
+  conversationId: number
+  createdAtUtc: string
+}
+
 // ─── Activity Commands ────────────────────────────────────────────────────────
 
 export async function getCurrentActivity(): Promise<CurrentActivity> {
@@ -96,6 +115,42 @@ export async function updateSettings(settings: Partial<AppSettings>): Promise<vo
 
 export async function testAiConnection(endpoint: string, model: string): Promise<string> {
   return invoke<string>('test_ai_connection', { endpoint, model })
+}
+
+export async function chatWithAi(
+  messages: AiChatMessage[],
+  includeActivity: boolean,
+  language: string,
+): Promise<string> {
+  return invoke<string>('chat_with_ai', { messages, includeActivity, language })
+}
+
+export async function getChatConversations(archived = false): Promise<ChatConversation[]> {
+  return invoke<ChatConversation[]>('list_chat_conversations', { archived })
+}
+
+export async function createChatConversation(title: string): Promise<ChatConversation> {
+  return invoke<ChatConversation>('create_chat_conversation', { input: { title } })
+}
+
+export async function getChatMessages(conversationId: number): Promise<StoredChatMessage[]> {
+  return invoke<StoredChatMessage[]>('get_chat_messages', { conversationId })
+}
+
+export async function saveChatMessage(conversationId: number, role: AiChatMessage['role'], content: string): Promise<StoredChatMessage> {
+  return invoke<StoredChatMessage>('save_chat_message', { input: { conversationId, role, content } })
+}
+
+export async function archiveChatConversation(conversationId: number, archived: boolean): Promise<void> {
+  return invoke('archive_chat_conversation', { input: { conversationId, archived } })
+}
+
+export async function deleteChatConversation(conversationId: number): Promise<void> {
+  return invoke('delete_chat_conversation', { conversationId })
+}
+
+export async function deleteAllChatConversations(): Promise<void> {
+  return invoke('delete_all_chat_conversations')
 }
 
 export async function resetAllData(): Promise<void> {

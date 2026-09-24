@@ -35,7 +35,7 @@
               <h3 class="text-xs font-semibold uppercase tracking-widest text-[var(--color-accent)]">{{ t('dashboard.aiCoach') }}</h3>
               <span v-if="loadingTip" class="text-[11px] text-muted animate-pulse">{{ t('dashboard.aiLoading') }}</span>
             </div>
-            <p v-if="aiTip" class="text-sm text-[var(--color-text)] leading-relaxed italic">"{{ aiTip }}"</p>
+            <MarkdownContent v-if="aiTip" :content="aiTip" class="text-sm text-[var(--color-text)] leading-relaxed" />
             <p v-else-if="aiTipError" class="text-xs text-red-400 leading-relaxed">{{ aiTipError }}</p>
             <p v-else-if="!loadingTip" class="text-xs text-muted">{{ t('dashboard.aiEmpty') }}</p>
           </div>
@@ -201,6 +201,7 @@ import { formatDuration } from '@/types'
 import ActivityTimer from '@/components/ActivityTimer.vue'
 import BreakCard from '@/components/BreakCard.vue'
 import StatCard from '@/components/StatCard.vue'
+import MarkdownContent from '@/components/MarkdownContent.vue'
 import { invoke } from '@tauri-apps/api/core'
 import { useI18n } from 'vue-i18n'
 

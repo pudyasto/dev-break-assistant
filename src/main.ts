@@ -12,6 +12,7 @@ import Statistics from './pages/Statistics.vue'
 import History    from './pages/History.vue'
 import Settings   from './pages/Settings.vue'
 import Stretches  from './pages/Stretches.vue'
+import Chat       from './pages/Chat.vue'
 
 // ─── Router
 const router = createRouter({
@@ -22,6 +23,7 @@ const router = createRouter({
     { path: '/statistics', component: Statistics, name: 'statistics' },
     { path: '/history',    component: History,    name: 'history'    },
     { path: '/stretches',  component: Stretches,  name: 'stretches'  },
+    { path: '/chat',       component: Chat,       name: 'chat'       },
     { path: '/settings',   component: Settings,   name: 'settings'   },
   ],
 })

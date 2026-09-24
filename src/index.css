@@ -47,6 +47,7 @@
     font-family: 'Inter', system-ui, sans-serif;
     background-color: var(--color-bg);
     color: var(--color-text);
+    color-scheme: dark;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -181,10 +182,18 @@
     color: var(--color-text);
     outline: none;
   }
+  .input {
+    @apply form-input;
+  }
   .form-input:focus {
     border-color: var(--color-accent);
   }
-  .form-input::placeholder { color: var(--color-muted); }
+  .form-input::placeholder,
+  .input::placeholder { color: var(--color-muted); }
+  .form-input option {
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
 
   /* Toggle switch */
   .toggle {
