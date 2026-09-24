@@ -27,12 +27,31 @@
 
     <template v-else>
       <!-- ── AI Tip ─────────────────────────────────────────────────── -->
-      <div v-if="aiTip" class="card bg-[var(--color-surface)] border-[var(--color-accent)] border p-4 flex items-start gap-4 animate-fade-in shadow-sm shadow-[var(--color-accent)]/10">
-        <div class="text-[20px]">✨</div>
-        <div>
-          <h3 class="text-xs font-semibold uppercase tracking-widest text-[var(--color-accent)] mb-1">Your AI Coach</h3>
-          <p class="text-sm text-[var(--color-text)] leading-relaxed">{{ aiTip }}</p>
+      <div v-if="settings.aiEnabled" class="card bg-[var(--color-surface)] border border-[var(--color-accent)]/30 p-4 flex items-start justify-between gap-4 animate-fade-in shadow-sm shadow-[var(--color-accent)]/5">
+        <div class="flex items-start gap-3 min-w-0">
+          <div class="text-[20px] select-none">✨</div>
+          <div class="space-y-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <h3 class="text-xs font-semibold uppercase tracking-widest text-[var(--color-accent)]">Your AI Coach</h3>
+              <span v-if="loadingTip" class="text-[11px] text-muted animate-pulse">Menghubungi Ollama...</span>
+            </div>
+            <p v-if="aiTip" class="text-sm text-[var(--color-text)] leading-relaxed italic">"{{ aiTip }}"</p>
+            <p v-else-if="aiTipError" class="text-xs text-red-400 leading-relaxed">{{ aiTipError }}</p>
+            <p v-else-if="!loadingTip" class="text-xs text-muted">Belum ada saran saat ini. Klik tombol refresh untuk meminta saran.</p>
+          </div>
         </div>
+
+        <button
+          type="button"
+          class="btn-ghost text-xs p-2 shrink-0 text-muted hover:text-[var(--color-text)] rounded-lg"
+          :title="loadingTip ? 'Sedang memuat...' : 'Minta saran baru dari AI'"
+          :disabled="loadingTip"
+          @click="fetchAiTip"
+        >
+          <svg class="w-4 h-4" :class="{ 'animate-spin': loadingTip }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
       </div>
 
       <!-- ── Current Session ───────────────────────────────────────── -->
@@ -190,6 +209,26 @@ const statsStore = useStatisticsStore()
 const settingsStore = useSettingsStore()
 
 const aiTip = ref<string | null>(null)
+const loadingTip = ref(false)
+const aiTipError = ref<string | null>(null)
+
+async function fetchAiTip() {
+  if (!settings.value.aiEnabled) return
+  loadingTip.value = true
+  aiTipError.value = null
+  try {
+    const tip = await invoke<string | null>('generate_daily_tip')
+    if (tip) {
+      aiTip.value = tip
+    } else {
+      aiTip.value = 'Tetap jaga postur tubuh tegak dan sempatkan istirahat sejenak di sela-sela coding!'
+    }
+  } catch (e: any) {
+    aiTipError.value = `Gagal memuat saran AI: ${e?.message || e}`
+  } finally {
+    loadingTip.value = false
+  }
+}
 
 // ─── Lifecycle
 onMounted(async () => {
@@ -198,11 +237,7 @@ onMounted(async () => {
   if (!settingsStore.settings) await settingsStore.fetchSettings()
   
   if (settingsStore.settings?.aiEnabled) {
-    try {
-      aiTip.value = await invoke<string | null>('generate_daily_tip')
-    } catch (e) {
-      console.error("AI tip failed:", e)
-    }
+    fetchAiTip()
   }
 })
 onUnmounted(() => {
