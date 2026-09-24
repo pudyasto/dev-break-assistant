@@ -63,6 +63,7 @@ pub fn run() {
             commands::statistics::get_recent_sessions,
             commands::statistics::get_statistics_range,
             commands::ai::generate_daily_tip,
+            commands::ai::test_ai_connection,
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();

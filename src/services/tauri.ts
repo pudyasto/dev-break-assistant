@@ -88,8 +88,18 @@ export async function updateSettings(settings: Partial<AppSettings>): Promise<vo
     promises.push(updateSetting('ui.start_minimized', settings.uiStartMinimized ? 'true' : 'false'))
   if (settings.privacyTrackForegroundApp !== undefined)
     promises.push(updateSetting('privacy.track_foreground_app', settings.privacyTrackForegroundApp ? 'true' : 'false'))
+  if (settings.aiEnabled !== undefined)
+    promises.push(updateSetting('ai.enabled', settings.aiEnabled ? 'true' : 'false'))
+  if (settings.aiEndpoint !== undefined)
+    promises.push(updateSetting('ai.endpoint', settings.aiEndpoint))
+  if (settings.aiModel !== undefined)
+    promises.push(updateSetting('ai.model', settings.aiModel))
 
   await Promise.all(promises)
+}
+
+export async function testAiConnection(endpoint: string, model: string): Promise<string> {
+  return invoke<string>('test_ai_connection', { endpoint, model })
 }
 
 export async function resetAllData(): Promise<void> {

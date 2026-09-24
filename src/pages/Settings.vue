@@ -124,12 +124,34 @@
           <SettingRow label="Enable AI Wellness Tips" description="Generates a local tip based on your daily stats.">
             <ToggleInput v-model="form.aiEnabled" id="setting-ai-enabled" />
           </SettingRow>
-          <SettingRow label="AI Endpoint (e.g. Ollama)" description="URL to local LLM API (e.g., http://localhost:11434/api/generate)">
-            <StringInput v-model="form.aiEndpoint" id="setting-ai-endpoint" />
+          <SettingRow label="AI Endpoint (e.g. Ollama)" description="URL to local/remote Ollama instance (e.g. http://192.168.81.201:11434 atau dengan /api/generate)">
+            <StringInput v-model="form.aiEndpoint" class="w-64 sm:w-80" id="setting-ai-endpoint" />
           </SettingRow>
-          <SettingRow label="AI Model" description="Model name (e.g., llama3)">
-            <StringInput v-model="form.aiModel" id="setting-ai-model" />
+          <SettingRow label="AI Model" description="Model name (e.g., ministral-3:14b, llama3)">
+            <StringInput v-model="form.aiModel" class="w-64 sm:w-80" id="setting-ai-model" />
           </SettingRow>
+
+          <div class="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[var(--color-bg-secondary)]/30">
+            <div class="min-w-0">
+              <p class="text-[13px] font-medium text-[var(--color-text)]">Uji Koneksi AI</p>
+              <p v-if="testResult" class="text-xs mt-1" :class="testResult.success ? 'text-green-400' : 'text-red-400'">
+                {{ testResult.message }}
+              </p>
+              <p v-else class="text-xs text-muted mt-0.5">
+                Pastikan host Ollama dapat dijangkau dari komputer ini.
+              </p>
+            </div>
+            <button
+              id="test-ai-btn"
+              type="button"
+              class="btn-secondary text-xs px-3 py-2 flex items-center gap-2 self-start sm:self-auto shrink-0"
+              :disabled="testingAi || !form.aiEndpoint"
+              @click="handleTestAi"
+            >
+              <span v-if="testingAi" class="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin"></span>
+              {{ testingAi ? 'Menghubungkan...' : 'Test Connection' }}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -236,7 +258,7 @@ import { ref, watch, onMounted } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { useStatisticsStore } from '@/stores/statistics'
 import { useActivityStore } from '@/stores/activity'
-import { resetAllData } from '@/services/tauri'
+import { resetAllData, testAiConnection } from '@/services/tauri'
 import type { AppSettings } from '@/types'
 
 // ─── Sub-components defined inline for simplicity
@@ -296,14 +318,14 @@ const ToggleInput = defineComponent({
 })
 
 const StringInput = defineComponent({
-  props: { modelValue: String, id: String },
+  props: { modelValue: String, id: String, class: String },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     return () => h('input', {
       id: props.id,
       type: 'text',
       value: props.modelValue,
-      class: 'form-input w-48 text-sm',
+      class: ['form-input text-sm', props.class || 'w-64'].join(' '),
       onInput: (e: Event) => emit('update:modelValue', (e.target as HTMLInputElement).value),
     })
   },
@@ -319,6 +341,29 @@ const saved = ref(false)
 const showResetModal = ref(false)
 const resetting = ref(false)
 const resetSuccess = ref(false)
+
+const testingAi = ref(false)
+const testResult = ref<{ success: boolean; message: string } | null>(null)
+
+async function handleTestAi() {
+  if (!form.value?.aiEndpoint) return
+  testingAi.value = true
+  testResult.value = null
+  try {
+    const res = await testAiConnection(form.value.aiEndpoint, form.value.aiModel || 'llama3')
+    testResult.value = {
+      success: true,
+      message: `✓ Terhubung! Respons AI: "${res.slice(0, 80)}${res.length > 80 ? '...' : ''}"`
+    }
+  } catch (err: any) {
+    testResult.value = {
+      success: false,
+      message: `✗ Gagal terhubung: ${err?.message || err}`
+    }
+  } finally {
+    testingAi.value = false
+  }
+}
 
 onMounted(async () => {
   await settingsStore.fetchSettings()
