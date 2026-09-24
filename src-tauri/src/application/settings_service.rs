@@ -1,8 +1,8 @@
 // ────────────────────────────────────────────────────────────────────────────
 // DevBreak — Settings Service
 // ────────────────────────────────────────────────────────────────────────────
-use sqlx::SqlitePool;
 use serde::{Deserialize, Serialize};
+use sqlx::SqlitePool;
 
 use crate::errors::AppError;
 use crate::infrastructure::database::repositories;
@@ -60,22 +60,36 @@ impl SettingsService {
 
         for row in rows {
             match row.key.as_str() {
-                "monitor.poll_interval_seconds"    => s.monitor_poll_interval_seconds    = parse_i64(&row.value),
-                "activity.idle_cutoff_seconds"     => s.activity_idle_cutoff_seconds     = parse_i64(&row.value),
-                "break.eye_after_minutes"          => s.break_eye_after_minutes          = parse_i64(&row.value),
-                "break.short_after_minutes"        => s.break_short_after_minutes        = parse_i64(&row.value),
-                "break.long_after_minutes"         => s.break_long_after_minutes         = parse_i64(&row.value),
-                "break.eye_duration_seconds"       => s.break_eye_duration_seconds       = parse_i64(&row.value),
-                "break.short_duration_seconds"     => s.break_short_duration_seconds     = parse_i64(&row.value),
-                "break.long_duration_seconds"      => s.break_long_duration_seconds      = parse_i64(&row.value),
-                "break.auto_complete_idle_seconds" => s.break_auto_complete_idle_seconds = parse_i64(&row.value),
-                "notification.enabled"             => s.notification_enabled             = parse_bool(&row.value),
-                "autostart.enabled"                => s.autostart_enabled                = parse_bool(&row.value),
-                "ui.start_minimized"               => s.ui_start_minimized               = parse_bool(&row.value),
-                "privacy.track_foreground_app"     => s.privacy_track_foreground_app     = parse_bool(&row.value),
-                "ai.enabled"                       => s.ai_enabled                       = parse_bool(&row.value),
-                "ai.endpoint"                      => s.ai_endpoint                      = row.value.clone(),
-                "ai.model"                         => s.ai_model                         = row.value.clone(),
+                "monitor.poll_interval_seconds" => {
+                    s.monitor_poll_interval_seconds = parse_i64(&row.value)
+                }
+                "activity.idle_cutoff_seconds" => {
+                    s.activity_idle_cutoff_seconds = parse_i64(&row.value)
+                }
+                "break.eye_after_minutes" => s.break_eye_after_minutes = parse_i64(&row.value),
+                "break.short_after_minutes" => s.break_short_after_minutes = parse_i64(&row.value),
+                "break.long_after_minutes" => s.break_long_after_minutes = parse_i64(&row.value),
+                "break.eye_duration_seconds" => {
+                    s.break_eye_duration_seconds = parse_i64(&row.value)
+                }
+                "break.short_duration_seconds" => {
+                    s.break_short_duration_seconds = parse_i64(&row.value)
+                }
+                "break.long_duration_seconds" => {
+                    s.break_long_duration_seconds = parse_i64(&row.value)
+                }
+                "break.auto_complete_idle_seconds" => {
+                    s.break_auto_complete_idle_seconds = parse_i64(&row.value)
+                }
+                "notification.enabled" => s.notification_enabled = parse_bool(&row.value),
+                "autostart.enabled" => s.autostart_enabled = parse_bool(&row.value),
+                "ui.start_minimized" => s.ui_start_minimized = parse_bool(&row.value),
+                "privacy.track_foreground_app" => {
+                    s.privacy_track_foreground_app = parse_bool(&row.value)
+                }
+                "ai.enabled" => s.ai_enabled = parse_bool(&row.value),
+                "ai.endpoint" => s.ai_endpoint = row.value.clone(),
+                "ai.model" => s.ai_model = row.value.clone(),
                 _ => {}
             }
         }
@@ -109,6 +123,41 @@ impl SettingsService {
         }
 
         repositories::upsert_setting(pool, key, value).await
+    }
+
+    /// The copilot can only change wellness-reminder settings. Sensitive settings
+    /// (AI endpoint, privacy, autostart, permissions) are deliberately excluded.
+    pub fn validate_copilot_change(key: &str, value: &str) -> Result<(), AppError> {
+        let number = |min: i64, max: i64| {
+            let parsed = value
+                .parse::<i64>()
+                .map_err(|_| AppError::Settings(format!("{key} must be a number")))?;
+            if !(min..=max).contains(&parsed) {
+                return Err(AppError::Settings(format!(
+                    "{key} must be between {min} and {max}"
+                )));
+            }
+            Ok(())
+        };
+        match key {
+            "break.eye_after_minutes" => number(5, 120),
+            "break.short_after_minutes" => number(10, 240),
+            "break.long_after_minutes" => number(20, 480),
+            "break.eye_duration_seconds" => number(10, 300),
+            "break.short_duration_seconds" | "break.long_duration_seconds" => number(30, 3600),
+            "break.auto_complete_idle_seconds" => number(30, 3600),
+            "activity.idle_cutoff_seconds" => number(15, 1800),
+            "notification.enabled" => {
+                if matches!(value, "true" | "false") {
+                    Ok(())
+                } else {
+                    Err(AppError::Settings(format!("{key} must be true or false")))
+                }
+            }
+            _ => Err(AppError::Settings(format!(
+                "Setting cannot be changed by AI: {key}"
+            ))),
+        }
     }
 }
 

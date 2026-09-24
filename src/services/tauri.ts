@@ -20,6 +20,11 @@ export interface AiChatMessage {
   content: string
 }
 
+export interface AiSettingChange { key: string; oldValue: string; proposedValue: string }
+export interface AiConfigurationProposal { changes: AiSettingChange[]; reason: string; impact: string; confidence: 'low' | 'medium' | 'high' | string }
+export interface AiChatResponse { content: string; proposal: AiConfigurationProposal | null }
+export interface AiConfigurationChange { id: number; reason: string; model: string; createdAtUtc: string; undoneAtUtc: string | null }
+
 export interface ChatConversation {
   id: number
   title: string
@@ -120,10 +125,17 @@ export async function testAiConnection(endpoint: string, model: string): Promise
 export async function chatWithAi(
   messages: AiChatMessage[],
   includeActivity: boolean,
+  includeConfiguration: boolean,
   language: string,
-): Promise<string> {
-  return invoke<string>('chat_with_ai', { messages, includeActivity, language })
+): Promise<AiChatResponse> {
+  return invoke<AiChatResponse>('chat_with_ai', { messages, includeActivity, includeConfiguration, language })
 }
+
+export async function applyAiConfigurationProposal(proposal: AiConfigurationProposal): Promise<number> {
+  return invoke<number>('apply_ai_configuration_proposal', { input: { proposal } })
+}
+export async function getAiConfigurationChanges(): Promise<AiConfigurationChange[]> { return invoke('list_ai_configuration_changes') }
+export async function undoAiConfigurationChange(changeId: number): Promise<void> { return invoke('undo_ai_configuration_change', { changeId }) }
 
 export async function getChatConversations(archived = false): Promise<ChatConversation[]> {
   return invoke<ChatConversation[]>('list_chat_conversations', { archived })
